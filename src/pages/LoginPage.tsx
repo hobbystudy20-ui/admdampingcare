@@ -2,47 +2,58 @@ import { useState } from 'react';
 import { Lock, LogIn, UserPlus, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-interface LoginPageProps {
-  onAuthed: () => void;
-}
-
-export default function LoginPage({ onAuthed }: LoginPageProps) {
+export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'daftar'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setInfo('');
     if (!email.trim() || !password) {
       setError('Email dan password wajib diisi.');
       return;
     }
+    if (password.length < 6) {
+      setError('Password minimal 6 karakter.');
+      return;
+    }
     setLoading(true);
     try {
-      const { error: authError } =
-        mode === 'login'
-          ? await supabase.auth.signInWithPassword({
-              email: email.trim(),
-              password,
-            })
-          : await supabase.auth.signUp({
-              email: email.trim(),
-              password,
-            });
-
-      if (authError) {
-        setError(
-          authError.message.includes('Invalid login credentials')
-            ? 'Email atau password salah.'
-            : authError.message.includes('already registered')
-            ? 'Akun dengan email ini sudah terdaftar. Silakan masuk.'
-            : 'Terjadi kesalahan. Coba lagi beberapa saat.'
-        );
-      } else if (mode === 'daftar') {
-        setError('');
+      if (mode === 'login') {
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (authError) {
+          setError(
+            authError.message.includes('Invalid login credentials')
+              ? 'Email atau password salah.'
+              : 'Terjadi kesalahan. Coba lagi beberapa saat.'
+          );
+        }
+      } else {
+        const { data, error: authError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+        });
+        if (authError) {
+          setError(
+            authError.message.includes('already registered')
+              ? 'Akun dengan email ini sudah terdaftar. Silakan masuk.'
+              : 'Terjadi kesalahan. Coba lagi beberapa saat.'
+          );
+        } else if (data.user) {
+          setInfo(
+            'Akun berhasil dibuat. Jika email kamu belum terdaftar sebagai admin, hubungi admin yang ada untuk menambahkan email kamu.'
+          );
+          setMode('login');
+          setPassword('');
+        }
       }
     } catch {
       setError('Terjadi kesalahan jaringan. Coba lagi.');
@@ -99,6 +110,9 @@ export default function LoginPage({ onAuthed }: LoginPageProps) {
           {error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
           )}
+          {info && (
+            <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">{info}</p>
+          )}
 
           <button
             type="submit"
@@ -126,6 +140,7 @@ export default function LoginPage({ onAuthed }: LoginPageProps) {
             onClick={() => {
               setMode(mode === 'login' ? 'daftar' : 'login');
               setError('');
+              setInfo('');
             }}
             className="font-semibold text-[#FB5EA8] hover:underline"
           >

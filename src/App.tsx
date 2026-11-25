@@ -125,8 +125,12 @@ function App() {
   useEffect(() => {
     if (!session) { setIsAdmin(null); return; }
     setIsAdmin(null);
-    supabase.rpc('is_allowed_admin').then(({ data }) => {
-      setIsAdmin(!!data);
+    supabase.rpc('is_allowed_admin').then(({ data, error }) => {
+      if (error) {
+        setIsAdmin(false);
+        return;
+      }
+      setIsAdmin(data === true);
     });
   }, [session]);
 
@@ -136,6 +140,8 @@ function App() {
   };
 
   useEffect(() => {
+    if (!session || !isAdmin) return;
+
     const channel = supabase
       .channel('dampingcare-live-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: '*' }, () => {
@@ -144,7 +150,7 @@ function App() {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, []);
+  }, [session, isAdmin]);
 
   const pageMap: Record<PageKey, React.ReactNode> = {
     'dashboard': <DashboardPage />,
@@ -185,11 +191,7 @@ function App() {
   }
 
   if (!session || isAdmin === false) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <LoginPage onAuthed={() => {}} />
-      </div>
-    );
+    return <LoginPage />;
   }
 
   if (isAdmin === null) {
