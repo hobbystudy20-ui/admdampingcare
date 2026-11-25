@@ -17,6 +17,11 @@
     "react-dom": "^18.3.1",
     "vite-plugin-pwa": "^2.0.0"
   },
+  "overrides": {
+    "workbox-build": {
+      "glob": "^14.0.6"
+    }
+  },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/react": "^18.3.5",
