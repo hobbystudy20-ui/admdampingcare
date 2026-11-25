@@ -1,71 +1,32 @@
-import { useState, useEffect, useRef } from 'react';
-import { Lock, LogIn, UserPlus, Mail } from 'lucide-react';
+import { useState } from 'react';
+import { Lock, LogIn, Mail } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 export default function LoginPage() {
-  const [mode, setMode] = useState<'login' | 'daftar'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [info, setInfo] = useState('');
-  const passwordSetRef = useRef(false);
-
-  useEffect(() => {
-    if (passwordSetRef.current) return;
-    passwordSetRef.current = true;
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    fetch(`${supabaseUrl}/functions/v1/set-admin-password`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${supabaseAnonKey}`,
-      },
-      body: JSON.stringify({}),
-    }).catch(() => {});
-  }, []);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setInfo('');
     if (!email.trim() || !password) {
       setError('Email dan password wajib diisi.');
       return;
     }
     setLoading(true);
     try {
-      if (mode === 'login') {
-        const { error: authError } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
-        if (authError) {
-          setError(
-            authError.message.includes('Invalid login credentials')
-              ? 'Email atau password salah.'
-              : 'Terjadi kesalahan. Coba lagi beberapa saat.'
-          );
-        }
-      } else {
-        const { data, error: authError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-        });
-        if (authError) {
-          setError(
-            authError.message.includes('already registered')
-              ? 'Akun dengan email ini sudah terdaftar. Silakan masuk.'
-              : 'Terjadi kesalahan. Coba lagi beberapa saat.'
-          );
-        } else if (data.user) {
-          setInfo(
-            'Akun berhasil dibuat. Jika email kamu belum terdaftar sebagai admin, hubungi admin yang ada untuk menambahkan email kamu.'
-          );
-          setMode('login');
-          setPassword('');
-        }
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (authError) {
+        setError(
+          authError.message.includes('Invalid login credentials')
+            ? 'Email atau password salah.'
+            : 'Terjadi kesalahan. Coba lagi beberapa saat.'
+        );
       }
     } catch {
       setError('Terjadi kesalahan jaringan. Coba lagi.');
@@ -83,11 +44,7 @@ export default function LoginPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900">Dampingcare Management System</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {mode === 'login'
-                ? 'Masuk untuk melanjutkan ke aplikasi'
-                : 'Daftar akun baru (hanya email yang diizinkan dapat mengakses)'}
-            </p>
+            <p className="mt-1 text-sm text-gray-500">Masuk untuk melanjutkan ke aplikasi</p>
           </div>
         </div>
 
@@ -114,16 +71,13 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password kamu"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              autoComplete="current-password"
               className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-gray-700 placeholder:text-gray-400 focus:border-[#FB5EA8] focus:outline-none focus:ring-1 focus:ring-[#FB5EA8]"
             />
           </div>
 
           {error && (
             <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
-          )}
-          {info && (
-            <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">{info}</p>
           )}
 
           <button
@@ -133,32 +87,13 @@ export default function LoginPage() {
           >
             {loading ? (
               'Memproses…'
-            ) : mode === 'login' ? (
-              <>
-                <LogIn className="h-5 w-5" /> Masuk
-              </>
             ) : (
               <>
-                <UserPlus className="h-5 w-5" /> Daftar
+                <LogIn className="h-5 w-5" /> Masuk
               </>
             )}
           </button>
         </form>
-
-        <p className="mt-5 text-center text-sm text-gray-500">
-          {mode === 'login' ? 'Belum punya akun?' : 'Sudah punya akun?'}{' '}
-          <button
-            type="button"
-            onClick={() => {
-              setMode(mode === 'login' ? 'daftar' : 'login');
-              setError('');
-              setInfo('');
-            }}
-            className="font-semibold text-[#FB5EA8] hover:underline"
-          >
-            {mode === 'login' ? 'Daftar di sini' : 'Masuk di sini'}
-          </button>
-        </p>
       </div>
     </div>
   );
