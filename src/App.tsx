@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import {
   LayoutDashboard, Users, CalendarPlus, UserCircle, Package, MapPin,
@@ -11,33 +11,34 @@ import {
 } from 'lucide-react';
 import Sidebar, { PageKey, NavGroup } from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
-import LoginPage from '@/pages/LoginPage';
-import AdminPage from '@/pages/AdminPage';
 import { supabase } from '@/lib/supabase';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import DashboardPage from '@/pages/DashboardPage';
-import TimPage from '@/pages/TimPage';
-import BookingPage from '@/pages/BookingPage';
-import UserPage from '@/pages/UserPage';
-import ServicePage from '@/pages/ServicePage';
-import AreaPage from '@/pages/AreaPage';
-import PlannerPage from '@/pages/PlannerPage';
-import SchedulePage from '@/pages/SchedulePage';
-import CaptionPage from '@/pages/CaptionPage';
-import EvaluasiSosmedPage from '@/pages/EvaluasiSosmedPage';
-import PendapatanPage from '@/pages/PendapatanPage';
-import BiayaOperasionalPage from '@/pages/BiayaOperasionalPage';
-import PembayaranPage from '@/pages/PembayaranPage';
-import LaporanKeuanganPage from '@/pages/LaporanKeuanganPage';
-import KasPage from '@/pages/KasPage';
-import TransportasiPage from '@/pages/TransportasiPage';
-import InventarisPage from '@/pages/InventarisPage';
-import DokumenPage from '@/pages/DokumenPage';
-import EvaluasiLayananPage from '@/pages/EvaluasiLayananPage';
-import EvaluasiKepuasanPage from '@/pages/EvaluasiKepuasanPage';
-import LaporanBookingPage from '@/pages/LaporanBookingPage';
-import LaporanSosmedPage from '@/pages/LaporanSosmedPage';
-import LaporanLayananPage from '@/pages/LaporanLayananPage';
+
+const LoginPage = lazy(() => import('@/pages/LoginPage'));
+const AdminPage = lazy(() => import('@/pages/AdminPage'));
+const DashboardPage = lazy(() => import('@/pages/DashboardPage'));
+const TimPage = lazy(() => import('@/pages/TimPage'));
+const BookingPage = lazy(() => import('@/pages/BookingPage'));
+const UserPage = lazy(() => import('@/pages/UserPage'));
+const ServicePage = lazy(() => import('@/pages/ServicePage'));
+const AreaPage = lazy(() => import('@/pages/AreaPage'));
+const PlannerPage = lazy(() => import('@/pages/PlannerPage'));
+const SchedulePage = lazy(() => import('@/pages/SchedulePage'));
+const CaptionPage = lazy(() => import('@/pages/CaptionPage'));
+const EvaluasiSosmedPage = lazy(() => import('@/pages/EvaluasiSosmedPage'));
+const PendapatanPage = lazy(() => import('@/pages/PendapatanPage'));
+const BiayaOperasionalPage = lazy(() => import('@/pages/BiayaOperasionalPage'));
+const PembayaranPage = lazy(() => import('@/pages/PembayaranPage'));
+const LaporanKeuanganPage = lazy(() => import('@/pages/LaporanKeuanganPage'));
+const KasPage = lazy(() => import('@/pages/KasPage'));
+const TransportasiPage = lazy(() => import('@/pages/TransportasiPage'));
+const InventarisPage = lazy(() => import('@/pages/InventarisPage'));
+const DokumenPage = lazy(() => import('@/pages/DokumenPage'));
+const EvaluasiLayananPage = lazy(() => import('@/pages/EvaluasiLayananPage'));
+const EvaluasiKepuasanPage = lazy(() => import('@/pages/EvaluasiKepuasanPage'));
+const LaporanBookingPage = lazy(() => import('@/pages/LaporanBookingPage'));
+const LaporanSosmedPage = lazy(() => import('@/pages/LaporanSosmedPage'));
+const LaporanLayananPage = lazy(() => import('@/pages/LaporanLayananPage'));
 
 const NAV_GROUPS: NavGroup[] = [
   {
@@ -191,7 +192,11 @@ function App() {
   }
 
   if (!session || isAdmin === false) {
-    return <LoginPage />;
+    return (
+      <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><LoadingSpinner /></div>}>
+        <LoginPage />
+      </Suspense>
+    );
   }
 
   if (isAdmin === null) {
@@ -213,7 +218,9 @@ function App() {
           <h1 className="text-base font-bold text-gray-900 md:text-lg">Dampingcare Management System</h1>
         </header>
         <main className="px-4 py-5 pb-24 md:px-6 md:pb-6">
-          <div key={`${active}-${refreshVersion}`}>{pageMap[active]}</div>
+          <Suspense fallback={<div className="flex min-h-64 items-center justify-center"><LoadingSpinner /></div>}>
+            <div key={`${active}-${refreshVersion}`}>{pageMap[active]}</div>
+          </Suspense>
         </main>
       </div>
       <BottomNav items={MOBILE_ITEMS} active={active} onNavigate={setActive} />
