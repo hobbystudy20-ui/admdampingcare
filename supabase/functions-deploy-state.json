@@ -1,0 +1,9 @@
+{
+  "projectId": "70917964",
+  "functions": {
+    "set-admin-password": {
+      "hasChanged": false,
+      "hash": "d2757265026accd5a437067167986606812a34dd47c1dfa044125bd7ea763a08"
+    }
+  }
+}
